@@ -13,6 +13,8 @@ public class Particle : IParticles
 	Vector3 vecMomentum; //momentum = mv
 	Vector3 vecForce; //force
 
+	public List<Particle> allInstances;
+
 	public bool isKinematic;
 
 	public Particle() { }

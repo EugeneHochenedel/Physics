@@ -12,6 +12,13 @@ public class Triangle
 
 	public Triangle() { }
 
+	public Triangle(ApplyParticle first, ApplyParticle second, ApplyParticle third)
+	{
+		P1 = first.temporary;
+		P2 = second.temporary;
+		P3 = third.temporary;
+	}
+
 	public Triangle(Particle first, Particle second, Particle third)
 	{
 		P1 = first;
