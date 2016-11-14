@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 public class SpringBehavior : MonoBehaviour
 {
-	//public GameObject camera;
+	//public GameObject go1;
 
 	List<Particle> allPoints;
 	List<SpringDamper> allJoints;
@@ -91,11 +91,17 @@ public class SpringBehavior : MonoBehaviour
 	public void spawnParticles(int w, int h)
 	{
 		float x = 0.0f, y = 0.0f;
-
+		
 		for (int i = 0; i < h; i++)
 		{
 			for (int j = 0; j < w; j++)
 			{
+				//GameObject Temp = Instantiate(go1, new Vector3(x, -y, 0), new Quaternion()) as GameObject;
+
+				//Particle testing = Temp.GetComponent<Particle>();
+				//testing = new Particle(new Vector3(x, -y, 0), Vector3.zero, 1);
+				//allPoints.Add(testing);
+
 				GameObject go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
 
 				Particle p = new Particle(new Vector3(x, -y, 0), Vector3.zero, 1.0f);
@@ -117,67 +123,131 @@ public class SpringBehavior : MonoBehaviour
 
 	public void generateSprings()
 	{
-		for (int i = 0; i < allPoints.Count; i++)
+		foreach(Particle i in allPoints)
 		{
-			if ((i + 1) % width > i % width)
+			int springIndex = FindIndex(allPoints, i);
+
+			if ((springIndex + 1) % width > springIndex % width)
 			{
-				SpringDamper sdRight = new SpringDamper(Spring, Damping, Rest, allPoints[i], allPoints[i + 1]);
+				SpringDamper sdRight = new SpringDamper(Spring, Damping, Rest, allPoints[springIndex], allPoints[springIndex + 1]);
 				allJoints.Add(sdRight);
 			}
-
-			if (i + width < allPoints.Count)
+			if (springIndex + width < allPoints.Count)
 			{
-				SpringDamper sdDown = new SpringDamper(Spring, Damping, Rest, allPoints[i], allPoints[i + width]);
+				SpringDamper sdDown = new SpringDamper(Spring, Damping, Rest, allPoints[springIndex], allPoints[springIndex + width]);
 				allJoints.Add(sdDown);
 			}
-
-			if ((i + 1) % width > i % width && i + width + 1 < allPoints.Count)
+			if ((springIndex + 1) % width > springIndex % width && springIndex + width + 1 < allPoints.Count)
 			{
-				SpringDamper sdRD = new SpringDamper(Spring, Damping, diagonalRest, allPoints[i], allPoints[i + width + 1]);
+				SpringDamper sdRD = new SpringDamper(Spring, Damping, diagonalRest, allPoints[springIndex], allPoints[springIndex + width + 1]);
 				allJoints.Add(sdRD);
 			}
-
-			if (i + width < allPoints.Count && i - 1 >= 0  && (i - 1) % width < i % width)
+			if (springIndex + width - 1 < allPoints.Count && springIndex - 1 >= 0 && (springIndex - 1) % width < springIndex % width)
 			{
-				SpringDamper sdLD = new SpringDamper(Spring, Damping, diagonalRest, allPoints[i], allPoints[i + width - 1]);
+				SpringDamper sdLD = new SpringDamper(Spring, Damping, diagonalRest, allPoints[springIndex], allPoints[springIndex + width - 1]);
 				allJoints.Add(sdLD);
 			}
 		}
+		//for (int i = 0; i < allPoints.Count; i++)
+		//{
+		//	if ((i + 1) % width > i % width)
+		//	{
+		//		SpringDamper sdRight = new SpringDamper(Spring, Damping, Rest, allPoints[i], allPoints[i + 1]);
+		//		allJoints.Add(sdRight);
+		//	}
+
+		//	if (i + width < allPoints.Count)
+		//	{
+		//		SpringDamper sdDown = new SpringDamper(Spring, Damping, Rest, allPoints[i], allPoints[i + width]);
+		//		allJoints.Add(sdDown);
+		//	}
+
+		//	if ((i + 1) % width > i % width && i + width + 1 < allPoints.Count)
+		//	{
+		//		SpringDamper sdRD = new SpringDamper(Spring, Damping, diagonalRest, allPoints[i], allPoints[i + width + 1]);
+		//		allJoints.Add(sdRD);
+		//	}
+
+		//	if (i + width < allPoints.Count && i - 1 >= 0  && (i - 1) % width < i % width)
+		//	{
+		//		SpringDamper sdLD = new SpringDamper(Spring, Damping, diagonalRest, allPoints[i], allPoints[i + width - 1]);
+		//		allJoints.Add(sdLD);
+		//	}
+		//}
 	}
 
 	public void generateSurfaces()
 	{
-		for (int i = 0; i < allPoints.Count; i++)
+		foreach(Particle i in allPoints)
 		{
-			if (i % width != width - 1 && i + width < allPoints.Count)
+			int triIndex = FindIndex(allPoints, i);
+			//Triangle t;
+
+			if (triIndex % width != width - 1 && triIndex + width < allPoints.Count)
 			{
-				Triangle t = new Triangle(allPoints[i], allPoints[i + 1], allPoints[i + width]);
-				foreach (SpringDamper sd in allJoints)
+				Triangle t = new Triangle(allPoints[triIndex], allPoints[triIndex + 1], allPoints[triIndex + width]);
+				foreach(SpringDamper sd in allJoints)
 				{
-					if ((sd.P1 == t.P1 && sd.P2 == t.P2) || (sd.P1 == t.P2 && sd.P2 == t.P2))
+					if ((sd.P1 == t.P1 && sd.P2 == t.P2) || (sd.P1 == t.P2 && sd.P2 == t.P1))
 					{
 						t.SD1 = sd;
 					}
-
-					else if ((sd.P1 == t.P2 && sd.P2 == t.P3) || (sd.P1 == t.P3 && sd.P2 == t.P3))
+					else if ((sd.P1 == t.P2 && sd.P2 == t.P3) || (sd.P1 == t.P3 && sd.P2 == t.P2))
 					{
 						t.SD2 = sd;
 					}
-
-					else if ((sd.P1 == t.P3 && sd.P2 == t.P1) || (sd.P2 == t.P3))
+					else if((sd.P1 == t.P3 && sd.P2 == t.P1) || (sd.P1 == t.P1 && sd.P2 == t.P3))
 					{
 						t.SD3 = sd;
 					}
 				}
 				allSurfaces.Add(t);
 			}
+		}
 
-			if (i >= width && i + 1 < allPoints.Count && i % width != width - 1)
+		foreach(Particle i in allPoints)
+		{
+			int triIndex = FindIndex(allPoints, i);
+			Triangle t;
+
+			if(triIndex >= width && triIndex + 1 < allPoints.Count && triIndex % width != width - 1)
 			{
-				Triangle temp = new Triangle(allPoints[i], allPoints[i + 1], allPoints[i - width + 1]);
-				allSurfaces.Add(temp);
+				t = new Triangle(allPoints[triIndex], allPoints[triIndex + 1], allPoints[triIndex - width + 1]);
+				allSurfaces.Add(t);
 			}
 		}
+
+		//for (int i = 0; i < allPoints.Count; i++)
+		//{
+		//	if (i % width != width - 1 && i + width < allPoints.Count)
+		//	{
+		//		Triangle t = new Triangle(allPoints[i], allPoints[i + 1], allPoints[i + width]);
+		//		foreach (SpringDamper sd in allJoints)
+		//		{
+		//			if ((sd.P1 == t.P1 && sd.P2 == t.P2) || (sd.P1 == t.P2 && sd.P2 == t.P1))
+		//			{
+		//				t.SD1 = sd;
+		//			}
+
+		//			else if ((sd.P1 == t.P2 && sd.P2 == t.P3) || (sd.P1 == t.P3 && sd.P2 == t.P2))
+		//			{
+		//				t.SD2 = sd;
+		//			}
+
+		//			else if ((sd.P1 == t.P3 && sd.P2 == t.P1) || (sd.P1 == t.P1 && sd.P2 == t.P3))
+		//			{
+		//				t.SD3 = sd;
+		//			}
+		//		}
+		//		allSurfaces.Add(t);
+		//	}
+
+		//	if (i >= width && i + 1 < allPoints.Count && i % width != width - 1)
+		//	{
+		//		Triangle temp = new Triangle(allPoints[i], allPoints[i + 1], allPoints[i - width + 1]);
+		//		allSurfaces.Add(temp);
+		//	}
+		//}
 	}
 
 	public void placeCamera()

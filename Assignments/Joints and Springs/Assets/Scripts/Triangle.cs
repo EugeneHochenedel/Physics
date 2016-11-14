@@ -34,6 +34,8 @@ public class Triangle
 		float Aero = 1.0f * Mathf.Pow(RelativeVelocity.magnitude, 2.0f);
 		Vector3 Dynamics = 1.0f * CrossSectionalArea * SurfaceNormal;
 
+		//Vector3 Temp = ((RelativeVelocity.magnitude * Vector3.Dot(RelativeVelocity, crossNorm)) / (2 * crossNorm.magnitude)) * crossNorm;
+
 		Vector3 AeroForce = -0.5f * (Aero * Dynamics);
 
 		P1.addForce(AeroForce / 3);
@@ -42,4 +44,5 @@ public class Triangle
 	}
 }
 // (|v|^2) * a * n = ((|v| * (v . n*)) / (2 * |n|)) * n*
+// (|v|^2) * a * n = ((RelativeVelocity.magnitude * Vector3.dot(RelativeVelocity, crossNorm)) / (2 * crossNorm.magnitude)) * crossNorm
 // n* = crossNorm
