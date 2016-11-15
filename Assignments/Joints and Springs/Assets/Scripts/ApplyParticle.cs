@@ -3,5 +3,5 @@ using System.Collections;
 
 public class ApplyParticle : MonoBehaviour
 {
-	public Particle temporary;
+	public Particle particle;
 }

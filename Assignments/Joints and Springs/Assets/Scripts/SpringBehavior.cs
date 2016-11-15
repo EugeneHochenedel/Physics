@@ -24,6 +24,7 @@ public class SpringBehavior : MonoBehaviour
 	public float fStrength;
 
 	public bool bWind;
+	public bool bGravity;
 
 	// Use this for initialization
 	void Start ()
@@ -48,7 +49,6 @@ public class SpringBehavior : MonoBehaviour
 			i.SpringConstant = Spring;
 			i.DampingFactor = Damping;
 			i.RestLength = Rest;
-			diagonalRest = Mathf.Sqrt(Mathf.Pow(Rest, 2) * 2);
 		}
 	}
 
@@ -56,7 +56,14 @@ public class SpringBehavior : MonoBehaviour
 	{
 		foreach (ApplyParticle i in allPoints)
 		{
-			i.temporary.Force = Vector3.down * Gravity * i.temporary.Mass;
+			if (bGravity == true)
+			{
+				i.particle.Force = Vector3.down * Gravity * i.particle.Mass;
+			}
+			else
+			{
+				i.particle.Force = Vector3.down * 0;
+			}
 		}
 
 		foreach (SpringDamper i in allJoints)
@@ -79,12 +86,12 @@ public class SpringBehavior : MonoBehaviour
 	{
 		for(int i = 0; i < allPoints.Count; i++)
 		{
-			allObjects[i].transform.position = allPoints[i].temporary.Position;
+			allObjects[i].transform.position = allPoints[i].particle.Position;
 		}
 
 		foreach(ApplyParticle j in allPoints)
 		{
-			j.temporary.particleUpdate();
+			j.particle.particleUpdate();
 		}
 	}
 
@@ -96,22 +103,23 @@ public class SpringBehavior : MonoBehaviour
 		{
 			for (int j = 0; j < w; j++)
 			{
-				GameObject Temp = Instantiate(go1, new Vector3(x, -y, 0), new Quaternion()) as GameObject;
+				GameObject go = Instantiate(go1, new Vector3(x, -y, 0), new Quaternion()) as GameObject;
 
-				ApplyParticle testing = Temp.GetComponent<ApplyParticle>();
-				allObjects.Add(Temp);
-				testing.temporary = new Particle(new Vector3(x, -y, 0), Vector3.zero, 1);
-				allPoints.Add(testing.GetComponent<ApplyParticle>());
+				ApplyParticle spawned = go.GetComponent<ApplyParticle>();
+				allObjects.Add(go);
+				go.name = "Particle " + (allObjects.Count - 1).ToString();
+				spawned.particle = new Particle(new Vector3(x, -y, 0), Vector3.zero, 1);
+				allPoints.Add(spawned.GetComponent<ApplyParticle>());
 
 				x += Rest;
 			}
 			x = 0.0f;
 			y += Rest;
 		}
-		allPoints[0].temporary.isKinematic = true;
-		allPoints[w - 1].temporary.isKinematic = true;
-		allPoints[allPoints.Count - 1].temporary.isKinematic = true;
-		allPoints[allPoints.Count - w].temporary.isKinematic = true;
+		allPoints[0].particle.isKinematic = true;
+		allPoints[w - 1].particle.isKinematic = true;
+		allPoints[allPoints.Count - 1].particle.isKinematic = true;
+		allPoints[allPoints.Count - w].particle.isKinematic = true;
 	}
 
 	public void generateSprings()
@@ -119,30 +127,30 @@ public class SpringBehavior : MonoBehaviour
 		foreach(ApplyParticle i in allPoints)
 		{
 			int springIndex = FindIndex(allPoints, i);
-			i.temporary.allInstances = new List<Particle>();
+			i.particle.allInstances = new List<Particle>();
 
 			if ((springIndex + 1) % width > springIndex % width)
 			{
-				i.temporary.allInstances.Add(allPoints[springIndex + 1].temporary);
-				SpringDamper sdRight = new SpringDamper(Spring, Damping, Rest, i.temporary, allPoints[springIndex + 1].temporary);
+				i.particle.allInstances.Add(allPoints[springIndex + 1].particle);
+				SpringDamper sdRight = new SpringDamper(Spring, Damping, Rest, i.particle, allPoints[springIndex + 1].particle);
 				allJoints.Add(sdRight);
 			}
 			if (springIndex + width < allPoints.Count)
 			{
-				i.temporary.allInstances.Add(allPoints[springIndex + width].temporary);
-				SpringDamper sdDown = new SpringDamper(Spring, Damping, Rest, i.temporary, allPoints[springIndex + width].temporary);
+				i.particle.allInstances.Add(allPoints[springIndex + width].particle);
+				SpringDamper sdDown = new SpringDamper(Spring, Damping, Rest, i.particle, allPoints[springIndex + width].particle);
 				allJoints.Add(sdDown);
 			}
 			if ((springIndex + 1) % width > springIndex % width && springIndex + width + 1 < allPoints.Count)
 			{
-				i.temporary.allInstances.Add(allPoints[springIndex + width + 1].temporary);
-				SpringDamper sdRD = new SpringDamper(Spring, Damping, diagonalRest, i.temporary, allPoints[springIndex + width + 1].temporary);
+				i.particle.allInstances.Add(allPoints[springIndex + width + 1].particle);
+				SpringDamper sdRD = new SpringDamper(Spring, Damping, Rest, i.particle, allPoints[springIndex + width + 1].particle);
 				allJoints.Add(sdRD);
 			}
 			if (springIndex + width - 1 < allPoints.Count && springIndex - 1 >= 0 && (springIndex - 1) % width < springIndex % width)
 			{
-				i.temporary.allInstances.Add(allPoints[springIndex + width - 1].temporary);
-				SpringDamper sdLD = new SpringDamper(Spring, Damping, diagonalRest, i.temporary, allPoints[springIndex + width - 1].temporary);
+				i.particle.allInstances.Add(allPoints[springIndex + width - 1].particle);
+				SpringDamper sdLD = new SpringDamper(Spring, Damping, Rest, i.particle, allPoints[springIndex + width - 1].particle);
 				allJoints.Add(sdLD);
 			}
 		}
@@ -156,23 +164,23 @@ public class SpringBehavior : MonoBehaviour
 
 			if (triIndex % width != width - 1 && triIndex + width < allPoints.Count)
 			{
-				Triangle t = new Triangle(allPoints[triIndex], allPoints[triIndex + 1], allPoints[triIndex + width]);
+				Triangle surf = new Triangle(allPoints[triIndex], allPoints[triIndex + 1], allPoints[triIndex + width]);
 				foreach(SpringDamper sd in allJoints)
 				{
-					if ((sd.P1 == t.P1 && sd.P2 == t.P2) || (sd.P1 == t.P2 && sd.P2 == t.P1))
+					if ((sd.P1 == surf.P1 && sd.P2 == surf.P2) || (sd.P1 == surf.P2 && sd.P2 == surf.P1))
 					{
-						t.SD1 = sd;
+						surf.SD1 = sd;
 					}
-					else if ((sd.P1 == t.P2 && sd.P2 == t.P3) || (sd.P1 == t.P3 && sd.P2 == t.P2))
+					else if ((sd.P1 == surf.P2 && sd.P2 == surf.P3) || (sd.P1 == surf.P3 && sd.P2 == surf.P2))
 					{
-						t.SD2 = sd;
+						surf.SD2 = sd;
 					}
-					else if((sd.P1 == t.P3 && sd.P2 == t.P1) || (sd.P1 == t.P1 && sd.P2 == t.P3))
+					else if((sd.P1 == surf.P3 && sd.P2 == surf.P1) || (sd.P1 == surf.P1 && sd.P2 == surf.P3))
 					{
-						t.SD3 = sd;
+						surf.SD3 = sd;
 					}
 				}
-				allSurfaces.Add(t);
+				allSurfaces.Add(surf);
 			}
 		}
 
@@ -194,7 +202,7 @@ public class SpringBehavior : MonoBehaviour
 		Vector3 cameraPosition = Vector3.zero;
 		foreach (ApplyParticle i in allPoints)
 		{
-			cameraPosition += i.temporary.Position;
+			cameraPosition += i.particle.Position;
 		}
 		cameraPosition = cameraPosition / allPoints.Count;
 		cameraPosition.z = -(width * height);
