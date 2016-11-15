@@ -59,6 +59,9 @@ public class SpringDamper
 			}
 			return true;
 		}
-		return false;
+		else
+		{
+			return false;
+		}
 	}
 }

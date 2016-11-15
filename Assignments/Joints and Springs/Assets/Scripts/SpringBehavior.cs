@@ -30,6 +30,8 @@ public class SpringBehavior : MonoBehaviour
 	public bool bWind;
 	public bool bGravity;
 
+	//Vector3 Borders;
+
 	// Use this for initialization
 	void Awake ()
 	{
@@ -45,7 +47,6 @@ public class SpringBehavior : MonoBehaviour
 		generateSurfaces();
 		drawSprings();
 		placeCamera();
-
 	}
 
 	// Update is called once per frame
@@ -56,18 +57,13 @@ public class SpringBehavior : MonoBehaviour
 			i.SpringConstant = Spring;
 			i.DampingFactor = Damping;
 			i.RestLength = Rest;
-		}
+		}	
 	}
 
 	void FixedUpdate()
 	{
-		List<SpringDamper> temp = new List<SpringDamper>();
 		foreach (ApplyParticle i in allPoints)
 		{
-			Vector3 walls = generateLimits(i);
-
-			i.particle.Velocity += walls / i.particle.Mass;
-
 			if (bGravity == true)
 			{
 				i.particle.Force = Vector3.down * Gravity * i.particle.Mass;
@@ -82,16 +78,10 @@ public class SpringBehavior : MonoBehaviour
 		{
 			i.ComputeForce();
 			clothTearing();
-			//temp.Add(i);
-			//if statement and tearing function
-			//if (clothTearing() == true || (i.P1 == null || i.P2 == null))
-			//{
-			//	Destroy(allLines[allJoints.IndexOf(i)]);
-			//	allLines.Remove(allLines[allJoints.IndexOf(i)]);
-			//	allJoints.Remove(i);
-			//}
 			//i.Draw();
 		}
+		
+		
 
 		foreach (Triangle j in allSurfaces)
 		{
@@ -99,19 +89,7 @@ public class SpringBehavior : MonoBehaviour
 			{
 				j.Aerodynamics(Vector3.forward * Strength);
 			}
-			
 		}
-
-		//foreach (SpringDamper sd in temp)
-		//{
-		//	//	clothTearing();
-		//	if (sd.threadTearing(tearPoint) == true || (sd.P1 == null || sd.P2 == null))
-		//	{
-		//		Destroy(allLines[allJoints.IndexOf(sd)]);
-		//		allLines.Remove(allLines[allJoints.IndexOf(sd)]);
-		//		allJoints.Remove(sd);
-		//	}
-		//}
 	}
 
 	void LateUpdate()
@@ -123,7 +101,7 @@ public class SpringBehavior : MonoBehaviour
 			allLines[linkIndex].SetPosition(0, allJoints[linkIndex].P1.Position);
 			allLines[linkIndex].SetPosition(1, allJoints[linkIndex].P2.Position);
 		}
-
+		
 		//foreach(GameObject k in allObjects)
 		//{
 		//	int pointIndex = FindIndex(allObjects, k);
@@ -272,40 +250,21 @@ public class SpringBehavior : MonoBehaviour
 			{
 				Destroy(allLines[tearIndex].gameObject);
 				allLines.Remove(allLines[tearIndex]);
-				allJoints.Remove(allJoints[tearIndex]);
+				allJoints.Remove(i);
 			}
 		}
 	}
 
-	public Vector3 generateLimits(ApplyParticle p)
+	public void surfaceTearing()
 	{
-		Vector3 bounds = new Vector3();
-
-		if (p.transform.position.x > fLimit)
+		foreach(Triangle i in allSurfaces)
 		{
-			bounds += new Vector3(-20, 0, 0);
+			int surfaceIndex = FindIndex(allSurfaces, i);
+			if (allSurfaces[surfaceIndex].P1 == null || allSurfaces[surfaceIndex].P2 == null || allSurfaces[surfaceIndex].P3 == null)
+			{
+				allSurfaces.Remove(i);
+			}
 		}
-		else if (p.transform.position.x < -fLimit)
-		{
-			bounds += new Vector3(20, 0, 0);
-		}
-		if (p.transform.position.y > fLimit)
-		{
-			bounds += new Vector3(0, -20, 0);
-		}
-		else if (p.transform.position.y < -fLimit)
-		{
-			bounds += new Vector3(0, 20, 0);
-		}
-		if (p.transform.position.z > fLimit)
-		{
-			bounds += new Vector3(0, 0, -20);
-		}
-		else if (p.transform.position.z < -fLimit)
-		{
-			bounds += new Vector3(0, 0, 20);
-		}
-		return bounds;
 	}
 
 	public void placeCamera()
