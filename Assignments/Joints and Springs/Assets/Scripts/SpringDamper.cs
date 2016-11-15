@@ -44,4 +44,21 @@ public class SpringDamper
 	{
 		Debug.DrawLine(P1.Position, P2.Position, Color.black);
 	}
+
+	public bool threadTearing(float tF)
+	{
+		if ((P2.Position - P1.Position).magnitude > RestLength * tF)
+		{
+			if (P2.allInstances.Contains(P1))
+			{
+				P2.allInstances.Remove(P1);
+			}
+			if (P1.allInstances.Contains(P2))
+			{
+				P1.allInstances.Remove(P2);
+			}
+			return true;
+		}
+		return false;
+	}
 }

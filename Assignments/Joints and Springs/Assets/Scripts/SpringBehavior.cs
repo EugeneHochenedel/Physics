@@ -23,6 +23,9 @@ public class SpringBehavior : MonoBehaviour
 
 	[Range(0.01f, 10.0f)]
 	public float fStrength;
+	[Range(0.0f, 20.0f)]
+	public float tearPoint;
+	public float fLimit;
 
 	public bool bWind;
 	public bool bGravity;
@@ -58,8 +61,13 @@ public class SpringBehavior : MonoBehaviour
 
 	void FixedUpdate()
 	{
+		List<SpringDamper> temp = new List<SpringDamper>();
 		foreach (ApplyParticle i in allPoints)
 		{
+			Vector3 walls = generateLimits(i);
+
+			i.particle.Velocity += walls / i.particle.Mass;
+
 			if (bGravity == true)
 			{
 				i.particle.Force = Vector3.down * Gravity * i.particle.Mass;
@@ -73,6 +81,15 @@ public class SpringBehavior : MonoBehaviour
 		foreach (SpringDamper i in allJoints)
 		{
 			i.ComputeForce();
+			clothTearing();
+			//temp.Add(i);
+			//if statement and tearing function
+			//if (clothTearing() == true || (i.P1 == null || i.P2 == null))
+			//{
+			//	Destroy(allLines[allJoints.IndexOf(i)]);
+			//	allLines.Remove(allLines[allJoints.IndexOf(i)]);
+			//	allJoints.Remove(i);
+			//}
 			//i.Draw();
 		}
 
@@ -84,6 +101,17 @@ public class SpringBehavior : MonoBehaviour
 			}
 			
 		}
+
+		//foreach (SpringDamper sd in temp)
+		//{
+		//	//	clothTearing();
+		//	if (sd.threadTearing(tearPoint) == true || (sd.P1 == null || sd.P2 == null))
+		//	{
+		//		Destroy(allLines[allJoints.IndexOf(sd)]);
+		//		allLines.Remove(allLines[allJoints.IndexOf(sd)]);
+		//		allJoints.Remove(sd);
+		//	}
+		//}
 	}
 
 	void LateUpdate()
@@ -232,6 +260,52 @@ public class SpringBehavior : MonoBehaviour
 			allLines.Add(lr);
 			lr.name = "Link " + (allLines.Count).ToString();
 		}
+	}
+
+	public void clothTearing()
+	{
+		foreach(SpringDamper i in allJoints)
+		{
+			int tearIndex = FindIndex(allJoints, i);
+
+			if (allJoints[tearIndex].threadTearing(tearPoint) || (allJoints[tearIndex].P1 == null || allJoints[tearIndex].P2 == null))
+			{
+				Destroy(allLines[tearIndex].gameObject);
+				allLines.Remove(allLines[tearIndex]);
+				allJoints.Remove(allJoints[tearIndex]);
+			}
+		}
+	}
+
+	public Vector3 generateLimits(ApplyParticle p)
+	{
+		Vector3 bounds = new Vector3();
+
+		if (p.transform.position.x > fLimit)
+		{
+			bounds += new Vector3(-20, 0, 0);
+		}
+		else if (p.transform.position.x < -fLimit)
+		{
+			bounds += new Vector3(20, 0, 0);
+		}
+		if (p.transform.position.y > fLimit)
+		{
+			bounds += new Vector3(0, -20, 0);
+		}
+		else if (p.transform.position.y < -fLimit)
+		{
+			bounds += new Vector3(0, 20, 0);
+		}
+		if (p.transform.position.z > fLimit)
+		{
+			bounds += new Vector3(0, 0, -20);
+		}
+		else if (p.transform.position.z < -fLimit)
+		{
+			bounds += new Vector3(0, 0, 20);
+		}
+		return bounds;
 	}
 
 	public void placeCamera()
