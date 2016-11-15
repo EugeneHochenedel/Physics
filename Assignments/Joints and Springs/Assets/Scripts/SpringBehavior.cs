@@ -6,12 +6,12 @@ using System.Collections.Generic;
 public class SpringBehavior : MonoBehaviour
 {
 	public GameObject go1;
-	//public GameObject go2;
 
 	List<ApplyParticle> allPoints;
 	List<SpringDamper> allJoints;
 	List<Triangle> allSurfaces;
-	List<GameObject> allObjects/*, chains*/;
+	List<GameObject> allObjects;
+	List<LineRenderer> allLines;
 	public float fGravity = 5.0f;
 	public int height, width;
 
@@ -20,7 +20,7 @@ public class SpringBehavior : MonoBehaviour
 	[Range(0.0f, 10.0f)]
 	public float fDamping;
 	public float Rest = 4;
-	//float diagonalRest;
+
 	[Range(0.01f, 10.0f)]
 	public float fStrength;
 
@@ -35,11 +35,12 @@ public class SpringBehavior : MonoBehaviour
 		allSurfaces = new List<Triangle>();
 		allObjects = new List<GameObject>();
 
-		//chains = new List<GameObject>();
+		allLines = new List<LineRenderer>();
 
 		spawnParticles(width, height);
 		generateSprings();
 		generateSurfaces();
+		drawSprings();
 		placeCamera();
 
 	}
@@ -72,7 +73,7 @@ public class SpringBehavior : MonoBehaviour
 		foreach (SpringDamper i in allJoints)
 		{
 			i.ComputeForce();
-			i.Draw();
+			//i.Draw();
 		}
 
 		foreach (Triangle j in allSurfaces)
@@ -88,21 +89,20 @@ public class SpringBehavior : MonoBehaviour
 	void LateUpdate()
 	{
 		//Very expensive rendering spring dampers like this
-		//foreach(GameObject i in chains)
-		//{
-		//	int linkIndex = FindIndex(chains, i);
-		//	LineRenderer lr = chains[linkIndex].GetComponent<LineRenderer>();
-		//	lr.SetPosition(0, allJoints[linkIndex].P1.Position);
-		//	lr.SetPosition(1, allJoints[linkIndex].P2.Position);
-		//}
-		
+		foreach (SpringDamper i in allJoints)
+		{
+			int linkIndex = FindIndex(allJoints, i);
+			allLines[linkIndex].SetPosition(0, allJoints[linkIndex].P1.Position);
+			allLines[linkIndex].SetPosition(1, allJoints[linkIndex].P2.Position);
+		}
+
 		//foreach(GameObject k in allObjects)
 		//{
 		//	int pointIndex = FindIndex(allObjects, k);
 		//	allObjects[pointIndex].transform.position = allPoints[pointIndex].particle.Position;
 		//}
 
-		foreach(ApplyParticle j in allPoints)
+		foreach (ApplyParticle j in allPoints)
 		{
 			int pointIndex = FindIndex(allPoints, j);
 			allObjects[pointIndex].transform.position = allPoints[pointIndex].particle.Position;
@@ -150,28 +150,24 @@ public class SpringBehavior : MonoBehaviour
 			{
 				i.particle.allInstances.Add(allPoints[springIndex + 1].particle);
 				SpringDamper sdRight = new SpringDamper(Spring, Damping, Rest, i.particle, allPoints[springIndex + 1].particle);
-				//chains.Add(drawSprings(sdRight));
 				allJoints.Add(sdRight);
 			}
 			if (springIndex + width < allPoints.Count)
 			{
 				i.particle.allInstances.Add(allPoints[springIndex + width].particle);
 				SpringDamper sdDown = new SpringDamper(Spring, Damping, Rest, i.particle, allPoints[springIndex + width].particle);
-				//chains.Add(drawSprings(sdDown));
 				allJoints.Add(sdDown);
 			}
 			if ((springIndex + 1) % width > springIndex % width && springIndex + width + 1 < allPoints.Count)
 			{
 				i.particle.allInstances.Add(allPoints[springIndex + width + 1].particle);
 				SpringDamper sdRD = new SpringDamper(Spring, Damping, Rest, i.particle, allPoints[springIndex + width + 1].particle);
-				//chains.Add(drawSprings(sdRD));
 				allJoints.Add(sdRD);
 			}
 			if (springIndex + width - 1 < allPoints.Count && springIndex - 1 >= 0 && (springIndex - 1) % width < springIndex % width)
 			{
 				i.particle.allInstances.Add(allPoints[springIndex + width - 1].particle);
 				SpringDamper sdLD = new SpringDamper(Spring, Damping, Rest, i.particle, allPoints[springIndex + width - 1].particle);
-				//chains.Add(drawSprings(sdLD));
 				allJoints.Add(sdLD);
 			}
 		}
@@ -218,17 +214,25 @@ public class SpringBehavior : MonoBehaviour
 		}
 	}
 
-	//public GameObject drawSprings(SpringDamper temp)
-	//{
-	//	GameObject linkDraw = Instantiate(go2, (temp.P1.Position + temp.P2.Position) / 2.0f, new Quaternion()) as GameObject;
-	//	linkDraw.name = "Link " + (chains.Count).ToString();
-	//	LineRenderer lr = linkDraw.GetComponent<LineRenderer>();
-	//	//lr.materials[0].color = Color.black;
-	//	lr.materials[0].color = new Color(0, 0, 0, 255);
-		
-	//	lr.SetWidth(0.1f, 0.1f);
-	//	return linkDraw;
-	//}
+	public void drawSprings()
+	{
+		foreach(SpringDamper i in allJoints)
+		{
+			int lineIndex = FindIndex(allJoints, i);
+
+			GameObject linkDraw = new GameObject();
+			LineRenderer lr = linkDraw.AddComponent<LineRenderer>();
+
+			linkDraw.transform.position = (allJoints[lineIndex].P1.Position + allJoints[lineIndex].P2.Position) / 2;
+
+			lr.SetPosition(0, allJoints[lineIndex].P1.Position);
+			lr.SetPosition(1, allJoints[lineIndex].P2.Position);
+			lr.material.color = Color.black;
+			lr.SetWidth(0.1f, 0.1f);
+			allLines.Add(lr);
+			lr.name = "Link " + (allLines.Count).ToString();
+		}
+	}
 
 	public void placeCamera()
 	{
