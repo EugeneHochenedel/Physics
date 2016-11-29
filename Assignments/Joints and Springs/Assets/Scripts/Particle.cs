@@ -63,8 +63,7 @@ public class Particle : IParticles
 		{
 			Force = Vector3.zero;
 		}
-		//Vector3 vecStop = theWall();
-
+		
 		vecAcceleration = (1.0f / fMass) * Force;
 		vecVelocity += (vecAcceleration * Time.fixedDeltaTime);
 		vecPosition += vecVelocity * Time.fixedDeltaTime;

@@ -42,6 +42,8 @@ public class SpringBehavior : MonoBehaviour
 
 		allLines = new List<LineRenderer>();
 
+		
+
 		spawnParticles(width, height);
 		generateSprings();
 		generateSurfaces();
@@ -62,6 +64,7 @@ public class SpringBehavior : MonoBehaviour
 
 	void FixedUpdate()
 	{
+		
 		foreach (ApplyParticle i in allPoints)
 		{
 			if (bGravity == true)
@@ -110,8 +113,8 @@ public class SpringBehavior : MonoBehaviour
 
 		foreach (ApplyParticle j in allPoints)
 		{
-			int pointIndex = FindIndex(allPoints, j);
-			allObjects[pointIndex].transform.position = allPoints[pointIndex].particle.Position;
+			//int pointIndex = FindIndex(allPoints, j);
+			j.transform.position = j.particle.Position;
 			j.particle.particleUpdate();
 		}
 	}
@@ -255,59 +258,43 @@ public class SpringBehavior : MonoBehaviour
 		}
 	}
 
-	public void surfaceTearing()
-	{
-		foreach(Triangle i in allSurfaces)
-		{
-			int surfaceIndex = FindIndex(allSurfaces, i);
-			if (allSurfaces[surfaceIndex].P1 == null || allSurfaces[surfaceIndex].P2 == null || allSurfaces[surfaceIndex].P3 == null)
-			{
-				allSurfaces.Remove(i);
-			}
-		}
-	}
-
 	private void Bounds()
 	{
 		foreach(ApplyParticle i in allPoints)
 		{
-			float a = 0;
-			float b = 0;
-			float c = 0;
-
-			if(Camera.main.WorldToScreenPoint(i.particle.Position).y <= 15.0f)
+			if(Camera.main.WorldToScreenPoint(i.particle.Position).y < 15.0f)
 			{
 				if (i.particle.Force.y < 0.0f)
 				{
-					i.particle.Force = new Vector3(a, 0, c);
+					i.particle.Force = new Vector3(i.particle.Force.x, 0, i.particle.Force.z);
 				}
-				i.particle.Velocity = -i.particle.Velocity * 0.65f;
+				i.particle.Velocity = new Vector3(i.particle.Velocity.x, -i.particle.Velocity.y, i.particle.Velocity.z) * 0.65f;
 			}
 
-			if (Camera.main.WorldToScreenPoint(i.particle.Position).y >= Screen.height - 15.0f)
+			if (Camera.main.WorldToScreenPoint(i.particle.Position).y > Screen.height - 15.0f)
 			{
 				if (i.particle.Force.y > 0.0f)
 				{
-					i.particle.Force = new Vector3(a, 0, c);
+					i.particle.Force = new Vector3(i.particle.Force.x, 0, i.particle.Force.z);
 				}
-				i.particle.Velocity = -i.particle.Velocity/* * 0.65f*/;
+				i.particle.Velocity = new Vector3(i.particle.Velocity.x, -i.particle.Velocity.y, i.particle.Velocity.z) * 0.65f;
 			}
 
-			if (Camera.main.WorldToScreenPoint(i.particle.Position).x <= 15.0f)
+			if (Camera.main.WorldToScreenPoint(i.particle.Position).x < 15.0f)
 			{
 				if (i.particle.Force.x < 0.0f)
 				{
-					i.particle.Force = new Vector3(0, b, c);
+					i.particle.Force = new Vector3(0, i.particle.Force.y, i.particle.Force.z);
 				}
-				i.particle.Velocity = -i.particle.Velocity * 0.65f;
+				i.particle.Velocity = new Vector3(-i.particle.Velocity.x, i.particle.Velocity.y, i.particle.Velocity.z) * 0.65f;
 			}
-			if (Camera.main.WorldToScreenPoint(i.particle.Position).x >= Screen.width - 15.0f)
+			if (Camera.main.WorldToScreenPoint(i.particle.Position).x > Screen.width - 15.0f)
 			{
 				if (i.particle.Force.x > 0.0f)
 				{
-					i.particle.Force = new Vector3(0, b, c);
+					i.particle.Force = new Vector3(0, i.particle.Force.y, i.particle.Force.z);
 				}
-				i.particle.Velocity = -i.particle.Velocity * 0.65f;
+				i.particle.Velocity = new Vector3(-i.particle.Velocity.x, i.particle.Velocity.y, i.particle.Velocity.z) * 0.65f;
 			}
 		}
 	}
@@ -320,7 +307,7 @@ public class SpringBehavior : MonoBehaviour
 			cameraPosition += i.particle.Position;
 		}
 		cameraPosition = cameraPosition / allPoints.Count;
-		cameraPosition.z = -(width * height);
+		cameraPosition.z = -(width * height) * 2;
 		Camera.main.transform.position = cameraPosition;
 	}
 	
