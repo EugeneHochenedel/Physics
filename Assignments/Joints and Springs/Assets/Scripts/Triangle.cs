@@ -29,12 +29,12 @@ public class Triangle
 	public void Aerodynamics(Vector3 airVelocity)
 	{
 		Vector3 averageVelocity = (P1.Velocity + P2.Velocity + P3.Velocity) / 3;
-		//Vector3 airVelocity = Vector3.forward * 0.5f;
+		
 		RelativeVelocity = averageVelocity - airVelocity;
 
 		Vector3 crossNorm = Vector3.Cross(P2.Position - P1.Position, P3.Position - P1.Position);
 		SurfaceNormal = crossNorm / crossNorm.magnitude;
-		//Debug.Log(crossNorm.magnitude);
+		
 		float a0 = 0.5f * crossNorm.magnitude;
 		CrossSectionalArea = a0 * (Vector3.Dot(RelativeVelocity, SurfaceNormal) / RelativeVelocity.magnitude);
 		
@@ -49,44 +49,6 @@ public class Triangle
 		P2.addForce(AeroForce / 3);
 		P3.addForce(AeroForce / 3);
 	}
-
-	//public bool surfaceTear(float fT)
-	//{
-	//	if (Vector3.Cross(P2.Position - P1.Position, P3.Position - P1.Position).magnitude > 5 * fT)
-	//	{
-	//		if (P1.allInstances.Contains(P2))
-	//		{
-	//			P1.allInstances.Remove(P2);
-	//		}
-	//		if (P1.allInstances.Contains(P3))
-	//		{
-	//			P1.allInstances.Remove(P3);
-	//		}
-	//		if (P2.allInstances.Contains(P1))
-	//		{
-	//			P2.allInstances.Remove(P1);
-	//		}
-	//		if (P2.allInstances.Contains(P3))
-	//		{
-	//			P2.allInstances.Remove(P3);
-	//		}
-	//		if (P3.allInstances.Contains(P1))
-	//		{
-	//			P3.allInstances.Remove(P1);
-	//		}
-	//		if (P3.allInstances.Contains(P2))
-	//		{
-	//			P3.allInstances.Remove(P2);
-	//		}
-	//		return true;
-	//	}
-	//	if(SD1.threadTearing(fT) == true)
-	//	{
-
-	//	}
-	//	return false;
-	//}
-
 }
 // (|v|^2) * a * n = ((|v| * (v . n*)) / (2 * |n|)) * n*
 // (|v|^2) * a * n = ((RelativeVelocity.magnitude * Vector3.dot(RelativeVelocity, crossNorm)) / (2 * crossNorm.magnitude)) * crossNorm

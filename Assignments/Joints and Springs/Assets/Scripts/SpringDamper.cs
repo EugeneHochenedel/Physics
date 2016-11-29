@@ -40,10 +40,10 @@ public class SpringDamper
 		P2.addForce(SpringForce2);
 	}
 
-	public void Draw()
-	{
-		Debug.DrawLine(P1.Position, P2.Position, Color.black);
-	}
+	//public void Draw()
+	//{
+	//	Debug.DrawLine(P1.Position, P2.Position, Color.black);
+	//}
 
 	public bool threadTearing(float tF)
 	{
@@ -59,9 +59,6 @@ public class SpringDamper
 			}
 			return true;
 		}
-		else
-		{
-			return false;
-		}
+		return false;
 	}
 }

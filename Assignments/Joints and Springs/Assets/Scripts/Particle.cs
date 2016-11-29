@@ -66,38 +66,7 @@ public class Particle : IParticles
 		//Vector3 vecStop = theWall();
 
 		vecAcceleration = (1.0f / fMass) * Force;
-		vecVelocity += (vecAcceleration * Time.fixedDeltaTime) + theWall();
+		vecVelocity += (vecAcceleration * Time.fixedDeltaTime);
 		vecPosition += vecVelocity * Time.fixedDeltaTime;
-	}
-
-	Vector3 theWall()
-	{
-		Vector3 bounds = new Vector3();
-
-		if (Position.x > 40)
-		{
-			bounds.x -= 10;
-		}
-		else if (Position.x < -40)
-		{
-			bounds.x += 10;
-		}
-		if (Position.y > 40)
-		{
-			bounds.y -= 10;
-		}
-		else if (Position.y < -40)
-		{
-			bounds.y += 10;
-		}
-		if (Position.z > 40)
-		{
-			bounds.z -= 10;
-		}
-		else if (Position.z < -40)
-		{
-			bounds.z += 10;
-		}
-		return bounds;
 	}
 }
