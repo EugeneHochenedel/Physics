@@ -12,7 +12,10 @@ public class SpringBehavior : MonoBehaviour
 	List<Triangle> allSurfaces;
 	List<GameObject> allObjects;
 	List<LineRenderer> allLines;
-	public float fGravity = 5.0f;
+
+	[Range(0.1f, 5.0f)]
+	public float fGravity;
+
 	public int height, width;
 
 	[Range(0.0f, 100.0f)]
@@ -132,7 +135,7 @@ public class SpringBehavior : MonoBehaviour
 				ApplyParticle spawned = go.GetComponent<ApplyParticle>();
 				allObjects.Add(go);
 				go.name = "Particle " + (allObjects.Count - 1).ToString();
-				spawned.particle = new Particle(new Vector3(x, -y, 0), Vector3.zero, 1);
+				spawned.particle = new Particle(new Vector3(x, -y, 0), Vector3.zero, 5);
 				allPoints.Add(spawned.GetComponent<ApplyParticle>());
 
 				spawned.transform.parent = transform;
