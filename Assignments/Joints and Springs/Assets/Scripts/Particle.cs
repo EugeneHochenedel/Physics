@@ -52,21 +52,41 @@ public class Particle : IParticles
 		set { fMass = value; }
 	}
 
-	public void addForce(Vector3 forces)
+	//public void addForce(Vector3 forces)
+	//{
+	//	Force += forces;
+	//}
+
+	public bool addForce(Vector3 forces)
 	{
-		Force += forces;
+		if(forces.magnitude > 0.0)
+		{
+			Force += forces;
+			return true;
+		}
+		else
+		{
+			Force = Force;
+			return false;
+		}
 	}
 
-	public void particleUpdate()
+	public Vector3 particleUpdate()
 	{
 		if (isKinematic == true)
 		{
 			Force = Vector3.zero;
 		}
+
+		else
+		{
+			vecAcceleration = (1.0f / fMass) * Force;
+			vecVelocity += (vecAcceleration * Time.fixedDeltaTime);
+			vecVelocity = Vector3.ClampMagnitude(vecVelocity, vecVelocity.magnitude);
+			vecPosition += vecVelocity * Time.fixedDeltaTime;
+		}
 		
-		vecAcceleration = (1.0f / fMass) * Force;
-		vecVelocity += (vecAcceleration * Time.fixedDeltaTime);
-		vecVelocity = Vector3.ClampMagnitude(vecVelocity, vecVelocity.magnitude);
-		vecPosition += vecVelocity * Time.fixedDeltaTime;
+		return vecPosition;
+		
 	}
 }

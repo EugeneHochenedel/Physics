@@ -4,7 +4,7 @@ using System.Collections;
 public class MouseInteraction : MonoBehaviour
 {
 	public GameObject selected;
-
+	
 	// Use this for initialization
 	void Start () {
 	
@@ -15,10 +15,7 @@ public class MouseInteraction : MonoBehaviour
 	{
 		dragging();
 		anchoring();
-		cutting();
-		//Debug.Log(selected);
 	}
-
 
 	void dragging()
 	{
@@ -47,25 +44,6 @@ public class MouseInteraction : MonoBehaviour
 			selected = null;
 		}
 	}
-
-	void cutting()
-	{
-		if(Input.GetKey(KeyCode.Space) && Input.GetButton("Fire1"))
-		{
-			if (Project() != null && Project().GetComponent<LineRenderer>() != null)
-			{
-				selected = Project();
-
-				
-			}
-
-			else
-			{
-				selected = null;
-			}
-		}
-	}
-
 	void anchoring()
 	{
 		if (Input.GetButtonDown("Fire2"))
@@ -77,8 +55,6 @@ public class MouseInteraction : MonoBehaviour
 				//Checks if isKinematic is true.
 				//If isKinematic is true then sets it to false and vice versa
 				selected.GetComponent<ApplyParticle>().particle.isKinematic = (selected.GetComponent<ApplyParticle>().particle.isKinematic == true) ? false : true;
-				selected.GetComponent<ApplyParticle>().particle.Force = Vector3.zero;
-				selected.GetComponent<ApplyParticle>().particle.Velocity = Vector3.zero;
 			}
 		}
 

@@ -84,7 +84,6 @@ public class SpringBehavior : MonoBehaviour
 		{
 			i.ComputeForce();
 			clothTearing();
-			//i.Draw();
 		}
 
 		foreach (Triangle j in allSurfaces)
@@ -100,7 +99,6 @@ public class SpringBehavior : MonoBehaviour
 
 	void LateUpdate()
 	{
-		//Very expensive rendering spring dampers like this
 		foreach (SpringDamper i in allJoints)
 		{
 			int linkIndex = FindIndex(allJoints, i);
@@ -108,15 +106,8 @@ public class SpringBehavior : MonoBehaviour
 			allLines[linkIndex].SetPosition(1, allJoints[linkIndex].P2.Position);
 		}
 		
-		//foreach(GameObject k in allObjects)
-		//{
-		//	int pointIndex = FindIndex(allObjects, k);
-		//	allObjects[pointIndex].transform.position = allPoints[pointIndex].particle.Position;
-		//}
-
 		foreach (ApplyParticle j in allPoints)
 		{
-			//int pointIndex = FindIndex(allPoints, j);
 			j.transform.position = j.particle.Position;
 			j.particle.particleUpdate();
 		}
@@ -253,12 +244,13 @@ public class SpringBehavior : MonoBehaviour
 		{
 			int tearIndex = FindIndex(allJoints, i);
 
-			if (allJoints[tearIndex].threadTearing(tearPoint) || (allJoints[tearIndex].P1 == null || allJoints[tearIndex].P2 == null))
+			if (i.threadTearing(tearPoint) || (i.P1 == null || i.P2 == null))
 			{
 				Destroy(allLines[tearIndex].gameObject);
 				allLines.Remove(allLines[tearIndex]);
 				allJoints.Remove(i);
 			}
+			break;
 		}
 	}
 
