@@ -15,7 +15,8 @@ public class MouseInteraction : MonoBehaviour
 	{
 		dragging();
 		anchoring();
-		
+		cutting();
+		//Debug.Log(selected);
 	}
 
 
@@ -26,26 +27,42 @@ public class MouseInteraction : MonoBehaviour
 			if (Project() != null && Project().GetComponent<ApplyParticle>() != null)
 			{
 				selected = Project();
+
+				selected.GetComponent<ApplyParticle>().particle.Force = Vector3.zero;
+				selected.GetComponent<ApplyParticle>().particle.Velocity = Vector3.zero;
+
+				Vector3 cursor = Input.mousePosition;
+				cursor.z = -Camera.main.transform.position.z;
+
+				Vector3 area = Camera.main.ScreenToWorldPoint(cursor);
+				area.z = selected.transform.position.z;
+
+				selected.GetComponent<ApplyParticle>().particle.Position = area;
+				selected.transform.position = area;
 			}
 		}
-		if (Input.GetButton("Fire1") && selected != null)
-		{
-			selected.GetComponent<ApplyParticle>().particle.Force = Vector3.zero;
-			selected.GetComponent<ApplyParticle>().particle.Velocity = Vector3.zero;
 
-			Vector3 cursor = Input.mousePosition;
-			cursor.z = -Camera.main.transform.position.z;
-
-			Vector3 area = Camera.main.ScreenToWorldPoint(cursor);
-			area.z = selected.transform.position.z;
-
-			selected.GetComponent<ApplyParticle>().particle.Position = area;
-			selected.transform.position = area;
-		}
-
-		else
+		if (Input.GetButtonUp("Fire1"))
 		{
 			selected = null;
+		}
+	}
+
+	void cutting()
+	{
+		if(Input.GetKey(KeyCode.Space) && Input.GetButton("Fire1"))
+		{
+			if (Project() != null && Project().GetComponent<LineRenderer>() != null)
+			{
+				selected = Project();
+
+				
+			}
+
+			else
+			{
+				selected = null;
+			}
 		}
 	}
 
@@ -56,14 +73,18 @@ public class MouseInteraction : MonoBehaviour
 			if (Project() != null && Project().GetComponent<ApplyParticle>() != null)
 			{
 				selected = Project();
+
 				//Checks if isKinematic is true.
 				//If isKinematic is true then sets it to false and vice versa
 				selected.GetComponent<ApplyParticle>().particle.isKinematic = (selected.GetComponent<ApplyParticle>().particle.isKinematic == true) ? false : true;
+				selected.GetComponent<ApplyParticle>().particle.Force = Vector3.zero;
+				selected.GetComponent<ApplyParticle>().particle.Velocity = Vector3.zero;
 			}
-			else
-			{
-				selected = null;
-			}
+		}
+
+		if (Input.GetButtonUp("Fire2"))
+		{
+			selected = null;
 		}
 	}
 

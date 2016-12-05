@@ -233,6 +233,7 @@ public class SpringBehavior : MonoBehaviour
 			int lineIndex = FindIndex(allJoints, i);
 
 			GameObject linkDraw = new GameObject();
+			BoxCollider bCol = linkDraw.AddComponent<BoxCollider>();
 			LineRenderer lr = linkDraw.AddComponent<LineRenderer>();
 
 			linkDraw.transform.position = (allJoints[lineIndex].P1.Position + allJoints[lineIndex].P2.Position) / 2;

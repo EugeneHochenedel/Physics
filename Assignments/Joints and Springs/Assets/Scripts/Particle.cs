@@ -66,6 +66,7 @@ public class Particle : IParticles
 		
 		vecAcceleration = (1.0f / fMass) * Force;
 		vecVelocity += (vecAcceleration * Time.fixedDeltaTime);
+		vecVelocity = Vector3.ClampMagnitude(vecVelocity, vecVelocity.magnitude);
 		vecPosition += vecVelocity * Time.fixedDeltaTime;
 	}
 }
