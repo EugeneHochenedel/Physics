@@ -10,7 +10,7 @@ public class Particle : IParticles
 	Vector3 vecVelocity; //velocity += a * Time.deltaTime
 	Vector3 vecAcceleration; //acceleration = (1/m)f
 	float fMass; //mass = p/v
-	Vector3 vecMomentum; //momentum = mv
+//	Vector3 vecMomentum; //momentum = mv
 	Vector3 vecForce; //force
 
 	public List<Particle> allInstances;
@@ -25,7 +25,7 @@ public class Particle : IParticles
 		vecVelocity = vel;
 		fMass = m;
 		vecForce = Vector3.zero;
-		vecMomentum = Vector3.zero;
+		//vecMomentum = Vector3.zero;
 	}
 
 	public Vector3 Position

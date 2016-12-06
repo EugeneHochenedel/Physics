@@ -5,12 +5,11 @@ using System.Collections.Generic;
 
 public class SpringBehavior : MonoBehaviour
 {
-	public GameObject go1;
+	public GameObject clothBoid;
 
 	List<ApplyParticle> allPoints;
 	List<SpringDamper> allJoints;
 	List<Triangle> allSurfaces;
-	List<GameObject> allObjects;
 	List<LineRenderer> allLines;
 
 	[Range(0.1f, 5.0f)]
@@ -33,19 +32,13 @@ public class SpringBehavior : MonoBehaviour
 	public bool bWind;
 	public bool bGravity;
 
-	//Vector3 Borders;
-
 	// Use this for initialization
 	void Awake ()
 	{
 		allPoints = new List<ApplyParticle>();
 		allJoints = new List<SpringDamper>();
 		allSurfaces = new List<Triangle>();
-		allObjects = new List<GameObject>();
-
 		allLines = new List<LineRenderer>();
-
-		
 
 		spawnParticles(width, height);
 		generateSprings();
@@ -67,34 +60,53 @@ public class SpringBehavior : MonoBehaviour
 
 	void FixedUpdate()
 	{
-		
+		List<SpringDamper> secondaryDamper = new List<SpringDamper>();
+		List<Triangle> secondarySurface = new List<Triangle>();
+
+		foreach (SpringDamper sd in allJoints)
+		{
+			secondaryDamper.Add(sd);
+		}
+
+		foreach(Triangle t in allSurfaces)
+		{
+			secondarySurface.Add(t);
+		}
+
 		foreach (ApplyParticle i in allPoints)
 		{
-			if (bGravity == true)
-			{
-				i.particle.Force = Vector3.down * Gravity * i.particle.Mass;
-			}
-			else
-			{
-				i.particle.Force = Vector3.down * 0;
-			}
+			i.particle.Force = Vector3.zero;
+			i.particle.Force = Vector3.down * Gravity * i.particle.Mass;
 		}
 
-		foreach (SpringDamper i in allJoints)
+		foreach (SpringDamper j in secondaryDamper)
 		{
-			i.ComputeForce();
-			clothTearing();
+			j.ComputeForce();
+			clothTearing(j);
 		}
 
-		foreach (Triangle j in allSurfaces)
+		foreach(Triangle k in secondarySurface)
 		{
 			if(Wind == true)
 			{
-				j.Aerodynamics(Vector3.forward * Strength);
+				if (!allJoints.Contains(k.SD1) || !allJoints.Contains(k.SD2) || !allJoints.Contains(k.SD3))
+				{
+					allSurfaces.Remove(k);
+				}
+				else
+				{
+					k.Aerodynamics(Vector3.forward * Strength);
+				}
 			}
 		}
 
-		Bounds();
+		foreach(ApplyParticle x in allPoints)
+		{
+			Bounds(x);
+
+			x.transform.position = x.particle.Position;
+			x.particle.particleUpdate();
+		}
 	}
 
 	void LateUpdate()
@@ -104,12 +116,6 @@ public class SpringBehavior : MonoBehaviour
 			int linkIndex = FindIndex(allJoints, i);
 			allLines[linkIndex].SetPosition(0, allJoints[linkIndex].P1.Position);
 			allLines[linkIndex].SetPosition(1, allJoints[linkIndex].P2.Position);
-		}
-		
-		foreach (ApplyParticle j in allPoints)
-		{
-			j.transform.position = j.particle.Position;
-			j.particle.particleUpdate();
 		}
 	}
 
@@ -121,14 +127,13 @@ public class SpringBehavior : MonoBehaviour
 		{
 			for (int j = 0; j < w; j++)
 			{
-				GameObject go = Instantiate(go1, new Vector3(x, -y, 0), new Quaternion()) as GameObject;
+				GameObject go = Instantiate(clothBoid, new Vector3(x, -y, 0), new Quaternion()) as GameObject;
 
 				ApplyParticle spawned = go.GetComponent<ApplyParticle>();
-				allObjects.Add(go);
-				go.name = "Particle " + (allObjects.Count - 1).ToString();
+				
 				spawned.particle = new Particle(new Vector3(x, -y, 0), Vector3.zero, 5);
-				allPoints.Add(spawned.GetComponent<ApplyParticle>());
-
+				allPoints.Add(spawned);
+				go.name = "Particle " + (allPoints.Count - 1).ToString();
 				spawned.transform.parent = transform;
 
 				x += Rest;
@@ -155,18 +160,21 @@ public class SpringBehavior : MonoBehaviour
 				SpringDamper sdRight = new SpringDamper(Spring, Damping, Rest, i.particle, allPoints[springIndex + 1].particle);
 				allJoints.Add(sdRight);
 			}
+
 			if (springIndex + width < allPoints.Count)
 			{
 				i.particle.allInstances.Add(allPoints[springIndex + width].particle);
 				SpringDamper sdDown = new SpringDamper(Spring, Damping, Rest, i.particle, allPoints[springIndex + width].particle);
 				allJoints.Add(sdDown);
 			}
+
 			if ((springIndex + 1) % width > springIndex % width && springIndex + width + 1 < allPoints.Count)
 			{
 				i.particle.allInstances.Add(allPoints[springIndex + width + 1].particle);
 				SpringDamper sdRD = new SpringDamper(Spring, Damping, Rest, i.particle, allPoints[springIndex + width + 1].particle);
 				allJoints.Add(sdRD);
 			}
+
 			if (springIndex + width - 1 < allPoints.Count && springIndex - 1 >= 0 && (springIndex - 1) % width < springIndex % width)
 			{
 				i.particle.allInstances.Add(allPoints[springIndex + width - 1].particle);
@@ -224,7 +232,7 @@ public class SpringBehavior : MonoBehaviour
 			int lineIndex = FindIndex(allJoints, i);
 
 			GameObject linkDraw = new GameObject();
-			BoxCollider bCol = linkDraw.AddComponent<BoxCollider>();
+			//BoxCollider bCol = linkDraw.AddComponent<BoxCollider>();
 			LineRenderer lr = linkDraw.AddComponent<LineRenderer>();
 
 			linkDraw.transform.position = (allJoints[lineIndex].P1.Position + allJoints[lineIndex].P2.Position) / 2;
@@ -238,60 +246,55 @@ public class SpringBehavior : MonoBehaviour
 		}
 	}
 
-	public void clothTearing()
+	public void clothTearing(SpringDamper torn)
 	{
-		foreach(SpringDamper i in allJoints)
+		if (torn.threadTearing(tearPoint) == true || (torn.P1 == null || torn.P2 == null))
 		{
-			int tearIndex = FindIndex(allJoints, i);
-
-			if (i.threadTearing(tearPoint) || (i.P1 == null || i.P2 == null))
-			{
-				Destroy(allLines[tearIndex].gameObject);
-				allLines.Remove(allLines[tearIndex]);
-				allJoints.Remove(i);
-			}
-			break;
+			Destroy(allLines[allJoints.IndexOf(torn)]);
+			allLines.Remove(allLines[allJoints.IndexOf(torn)]);
+			allJoints.Remove(torn);
 		}
 	}
 
-	private void Bounds()
+	private void Bounds(ApplyParticle blocked)
 	{
-		foreach(ApplyParticle i in allPoints)
+		float forceX = blocked.particle.Force.x, forceY = blocked.particle.Force.y, forceZ = blocked.particle.Force.z;
+		float velX = blocked.particle.Velocity.x, velY = blocked.particle.Velocity.y, velZ = blocked.particle.Velocity.z;
+
+		if (Camera.main.WorldToScreenPoint(blocked.particle.Position).x < 15.0f)
 		{
-			if(Camera.main.WorldToScreenPoint(i.particle.Position).y < 15.0f)
+			if(blocked.particle.Force.x < 0.0f)
 			{
-				if (i.particle.Force.y < 0.0f)
-				{
-					i.particle.Force = new Vector3(i.particle.Force.x, 0, i.particle.Force.z);
-				}
-				i.particle.Velocity = new Vector3(i.particle.Velocity.x, -i.particle.Velocity.y, i.particle.Velocity.z) * 0.65f;
+				blocked.particle.Force = new Vector3(0, forceY, forceZ);
 			}
+			blocked.particle.Velocity = new Vector3(-velX, velY, velZ) * 0.65f;
+		}
 
-			if (Camera.main.WorldToScreenPoint(i.particle.Position).y > Screen.height - 15.0f)
+		if (Camera.main.WorldToScreenPoint(blocked.particle.Position).x > Screen.width - 15.0f)
+		{
+			if (blocked.particle.Force.x > 0.0f)
 			{
-				if (i.particle.Force.y > 0.0f)
-				{
-					i.particle.Force = new Vector3(i.particle.Force.x, 0, i.particle.Force.z);
-				}
-				i.particle.Velocity = new Vector3(i.particle.Velocity.x, -i.particle.Velocity.y, i.particle.Velocity.z) * 0.65f;
+				blocked.particle.Force = new Vector3(0, forceY, forceZ);
 			}
+			blocked.particle.Velocity = new Vector3(-velX, velY, velZ) * 0.65f;
+		}
 
-			if (Camera.main.WorldToScreenPoint(i.particle.Position).x < 15.0f)
+		if (Camera.main.WorldToScreenPoint(blocked.particle.Position).y < 15.0f)
+		{
+			if (blocked.particle.Force.y < 0.0f)
 			{
-				if (i.particle.Force.x < 0.0f)
-				{
-					i.particle.Force = new Vector3(0, i.particle.Force.y, i.particle.Force.z);
-				}
-				i.particle.Velocity = new Vector3(-i.particle.Velocity.x, i.particle.Velocity.y, i.particle.Velocity.z) * 0.65f;
+				blocked.particle.Force = new Vector3(forceX, 0, forceZ);
 			}
-			if (Camera.main.WorldToScreenPoint(i.particle.Position).x > Screen.width - 15.0f)
+			blocked.particle.Velocity = new Vector3(velX, -velY, velZ) * 0.65f;
+		}
+
+		if (Camera.main.WorldToScreenPoint(blocked.particle.Position).y > Screen.height - 15.0f)
+		{
+			if (blocked.particle.Force.y > 0.0f)
 			{
-				if (i.particle.Force.x > 0.0f)
-				{
-					i.particle.Force = new Vector3(0, i.particle.Force.y, i.particle.Force.z);
-				}
-				i.particle.Velocity = new Vector3(-i.particle.Velocity.x, i.particle.Velocity.y, i.particle.Velocity.z) * 0.65f;
+				blocked.particle.Force = new Vector3(forceX, 0, forceZ);
 			}
+			blocked.particle.Velocity = new Vector3(velX, -velY, velZ) * 0.65f;
 		}
 	}
 
@@ -344,21 +347,6 @@ public class SpringBehavior : MonoBehaviour
 		for (int i = 0; i < TriangleList.Count; i++)
 		{
 			if (TriangleList[i] == aTriangle)
-			{
-				index = i;
-				break;
-			}
-		}
-		return index;
-	}
-
-	public int FindIndex(List<GameObject> ObjectList, GameObject anObject)
-	{
-		int index = 0;
-
-		for (int i = 0; i < ObjectList.Count; i++)
-		{
-			if (ObjectList[i] == anObject)
 			{
 				index = i;
 				break;
