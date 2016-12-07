@@ -12,12 +12,12 @@ public class SpringBehavior : MonoBehaviour
 	List<Triangle> allSurfaces;
 	List<LineRenderer> allLines;
 
-	[Range(0.1f, 5.0f)]
+	[Range(0.1f, 9.8f)]
 	public float fGravity;
 
 	public int height, width;
 
-	[Range(0.0f, 100.0f)]
+	[Range(0.0f, 50.0f)]
 	public float fSpring;
 	[Range(0.0f, 10.0f)]
 	public float fDamping;
@@ -29,7 +29,7 @@ public class SpringBehavior : MonoBehaviour
 	public float tearPoint;
 
 	public bool bWind;
-	//public bool bGravity;
+	public bool bGravity;
 
 	// Use this for initialization
 	void Awake ()
@@ -74,8 +74,14 @@ public class SpringBehavior : MonoBehaviour
 
 		foreach (ApplyParticle i in allPoints)
 		{
-			i.particle.Force = Vector3.zero;
-			i.particle.Force = Vector3.down * Gravity * i.particle.Mass;
+			if(GravTog == false)
+			{
+				i.particle.Force = Vector3.zero;
+			}
+			else
+			{
+				i.particle.Force = Vector3.down * Gravity * (Gravity * 0.5f) * i.particle.Mass;
+			}
 		}
 
 		foreach (SpringDamper j in secondaryDamper)
@@ -243,7 +249,8 @@ public class SpringBehavior : MonoBehaviour
 			lr.material.color = Color.black;
 			lr.SetWidth(0.1f, 0.1f);
 			allLines.Add(lr);
-			lr.name = "Link " + (allLines.Count).ToString();
+			linkDraw.name = "Link " + (allLines.Count).ToString();
+			lr.transform.parent = transform;
 		}
 	}
 
@@ -361,6 +368,11 @@ public class SpringBehavior : MonoBehaviour
 	{
 		get { return bWind; }
 		set { bWind = value; }
+	}
+	public bool GravTog
+	{
+		get { return bGravity; }
+		set { bGravity = value; }
 	}
 	public float Spring
 	{
