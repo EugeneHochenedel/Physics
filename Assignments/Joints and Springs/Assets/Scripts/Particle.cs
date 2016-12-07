@@ -52,11 +52,6 @@ public class Particle : IParticles
 		set { fMass = value; }
 	}
 
-	//public void addForce(Vector3 forces)
-	//{
-	//	Force += forces;
-	//}
-
 	public bool addForce(Vector3 forces)
 	{
 		if(forces.magnitude > 0.0)

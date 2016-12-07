@@ -27,10 +27,9 @@ public class SpringBehavior : MonoBehaviour
 	public float fStrength;
 	[Range(0.0f, 20.0f)]
 	public float tearPoint;
-	public float fLimit;
 
 	public bool bWind;
-	public bool bGravity;
+	//public bool bGravity;
 
 	// Use this for initialization
 	void Awake ()
@@ -100,17 +99,19 @@ public class SpringBehavior : MonoBehaviour
 			}
 		}
 
-		foreach(ApplyParticle x in allPoints)
-		{
-			Bounds(x);
-
-			x.transform.position = x.particle.Position;
-			x.particle.particleUpdate();
-		}
+		
 	}
 
 	void LateUpdate()
 	{
+		foreach (ApplyParticle i in allPoints)
+		{
+			Bounds(i);
+
+			i.transform.position = i.particle.Position;
+			i.particle.particleUpdate();
+		}
+
 		foreach (SpringDamper i in allJoints)
 		{
 			int linkIndex = FindIndex(allJoints, i);
@@ -199,11 +200,11 @@ public class SpringBehavior : MonoBehaviour
 					{
 						surf.SD1 = sd;
 					}
-					else if ((sd.P1 == surf.P2 && sd.P2 == surf.P3) || (sd.P1 == surf.P3 && sd.P2 == surf.P2))
+					if ((sd.P1 == surf.P2 && sd.P2 == surf.P3) || (sd.P1 == surf.P3 && sd.P2 == surf.P2))
 					{
 						surf.SD2 = sd;
 					}
-					else if((sd.P1 == surf.P3 && sd.P2 == surf.P1) || (sd.P1 == surf.P1 && sd.P2 == surf.P3))
+					if((sd.P1 == surf.P3 && sd.P2 == surf.P1) || (sd.P1 == surf.P1 && sd.P2 == surf.P3))
 					{
 						surf.SD3 = sd;
 					}
@@ -250,7 +251,7 @@ public class SpringBehavior : MonoBehaviour
 	{
 		if (torn.threadTearing(tearPoint) == true || (torn.P1 == null || torn.P2 == null))
 		{
-			Destroy(allLines[allJoints.IndexOf(torn)]);
+			Destroy(allLines[allJoints.IndexOf(torn)].gameObject);
 			allLines.Remove(allLines[allJoints.IndexOf(torn)]);
 			allJoints.Remove(torn);
 		}

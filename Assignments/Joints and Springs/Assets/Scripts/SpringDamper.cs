@@ -47,7 +47,7 @@ public class SpringDamper
 
 	public bool threadTearing(float tF)
 	{
-		if ((P2.Position - P1.Position).magnitude > RestLength * tF)
+		if ((P2.Position - P1.Position).magnitude > (RestLength * tF) / (0.03f * SpringConstant))
 		{
 			if (P2.allInstances.Contains(P1))
 			{
