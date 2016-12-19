@@ -5,12 +5,12 @@ using System.Collections.Generic;
 
 public class Particle
 {
-	Vector3 vecPosition; //position += velocity * Time.deltaTime
-	Vector3 vecVelocity; //velocity += a * Time.deltaTime
-	Vector3 vecAcceleration; //acceleration = (1/m)f
-	float fMass; //mass = p/v
-//	Vector3 vecMomentum; //momentum = mv
-	Vector3 vecForce; //force
+	//Fields
+	private Vector3 vecPosition; //position += velocity * Time.deltaTime
+	private Vector3 vecVelocity; //velocity += a * Time.deltaTime
+	private Vector3 vecAcceleration; //acceleration = (1/m)f
+	private float fMass; //mass = p/v
+	private Vector3 vecForce; //force
 
 	public List<Particle> allInstances;
 
@@ -24,9 +24,9 @@ public class Particle
 		vecVelocity = vel;
 		fMass = m;
 		vecForce = Vector3.zero;
-		//vecMomentum = Vector3.zero;
 	}
 
+	//Properties
 	public Vector3 Position
 	{
 		get { return vecPosition; }
@@ -35,7 +35,7 @@ public class Particle
 
 	public Vector3 Velocity
 	{
-		get { return vecVelocity; }
+		get { return Vector3.ClampMagnitude(vecVelocity, 20); }
 		set { vecVelocity = value; }
 	}
 
@@ -51,6 +51,7 @@ public class Particle
 		set { fMass = value; }
 	}
 
+	//Functions
 	public bool addForce(Vector3 forces)
 	{
 		if(forces.magnitude > 0.0)
@@ -58,28 +59,39 @@ public class Particle
 			Force += forces;
 			return true;
 		}
-		else
-		{
-			Force = Force;
-			return false;
-		}
+		return false;
 	}
 
+	/// <summary>
+	/// Calculates how the position of this particle is changing,
+	/// Based on if it's kinematic, and its velocity.
+	/// The velocity is determined by the force being applied to this particle
+	/// And the resulting acceleration.
+	/// </summary>
+	/// <returns>position of this particle</returns>
 	public Vector3 particleUpdate()
 	{
 		if (isKinematic == true)
 		{
-			Force = Vector3.zero;
+			vecForce = Vector3.zero;
 		}
 
 		else
 		{
-			vecAcceleration = (1.0f / fMass) * Force;
+			vecAcceleration = (1.0f / fMass) * Vector3.ClampMagnitude(vecForce, 25);
 			vecVelocity += (vecAcceleration * Time.fixedDeltaTime);
-			vecVelocity = Vector3.ClampMagnitude(vecVelocity, vecVelocity.magnitude);
 			vecPosition += vecVelocity * Time.fixedDeltaTime;
 		}
 		
 		return vecPosition;	
 	}
+
+	//Comments from the instructor
+	//why use a property vs a field?
+	//when to use?
+	//if you don't know then at the very least be consistent
+
+	//Difference between Time.deltaTime and Time.fixedDeltaTime
+	//Time.deltaTime respects a time scale
+	//Time.fixedDeltaTime is a pre-set amount of time between frames
 }

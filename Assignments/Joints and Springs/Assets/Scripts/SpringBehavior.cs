@@ -7,10 +7,10 @@ public class SpringBehavior : MonoBehaviour
 {
 	public GameObject clothBoid;
 
-	List<ApplyParticle> allPoints;
-	List<SpringDamper> allJoints;
-	List<Triangle> allSurfaces;
-	List<LineRenderer> allLines;
+	private List<ApplyParticle> allPoints;
+	private List<SpringDamper> allJoints;
+	private List<Triangle> allSurfaces;
+	private List<LineRenderer> allLines;
 
 	[Range(0.1f, 9.8f)]
 	public float fGravity;
@@ -32,7 +32,7 @@ public class SpringBehavior : MonoBehaviour
 	public bool bGravity;
 
 	// Use this for initialization
-	void Awake ()
+	private void Awake ()
 	{
 		allPoints = new List<ApplyParticle>();
 		allJoints = new List<SpringDamper>();
@@ -46,7 +46,7 @@ public class SpringBehavior : MonoBehaviour
 	}
 
 	// Update is called once per frame
-	void Update()
+	private void Update()
 	{
 		foreach (SpringDamper i in allJoints)
 		{
@@ -56,7 +56,7 @@ public class SpringBehavior : MonoBehaviour
 		}	
 	}
 
-	void FixedUpdate()
+	private void FixedUpdate()
 	{
 		List<SpringDamper> secondaryDamper = new List<SpringDamper>();
 		List<Triangle> secondarySurface = new List<Triangle>();
@@ -93,7 +93,7 @@ public class SpringBehavior : MonoBehaviour
 		{
 			if(Wind == true)
 			{
-				if (!allJoints.Contains(k.SD1) || !allJoints.Contains(k.SD2) || !allJoints.Contains(k.SD3))
+				if (!allJoints.Contains(k.FirstLine) || !allJoints.Contains(k.SecondLine) || !allJoints.Contains(k.ThirdLine))
 				{
 					allSurfaces.Remove(k);
 				}
@@ -105,7 +105,7 @@ public class SpringBehavior : MonoBehaviour
 		}
 	}
 
-	void LateUpdate()
+	private void LateUpdate()
 	{
 		foreach (ApplyParticle i in allPoints)
 		{
@@ -118,8 +118,8 @@ public class SpringBehavior : MonoBehaviour
 		foreach (SpringDamper i in allJoints)
 		{
 			int linkIndex = FindIndex(allJoints, i);
-			allLines[linkIndex].SetPosition(0, allJoints[linkIndex].P1.Position);
-			allLines[linkIndex].SetPosition(1, allJoints[linkIndex].P2.Position);
+			allLines[linkIndex].SetPosition(0, allJoints[linkIndex].partOne.Position);
+			allLines[linkIndex].SetPosition(1, allJoints[linkIndex].partTwo.Position);
 		}
 	}
 
@@ -193,10 +193,10 @@ public class SpringBehavior : MonoBehaviour
 			GameObject linkDraw = new GameObject();
 			LineRenderer lr = linkDraw.AddComponent<LineRenderer>();
 
-			linkDraw.transform.position = (allJoints[sdIndex].P1.Position + allJoints[sdIndex].P2.Position) / 2;
+			linkDraw.transform.position = (allJoints[sdIndex].partOne.Position + allJoints[sdIndex].partTwo.Position) / 2;
 
-			lr.SetPosition(0, allJoints[sdIndex].P1.Position);
-			lr.SetPosition(1, allJoints[sdIndex].P2.Position);
+			lr.SetPosition(0, allJoints[sdIndex].partOne.Position);
+			lr.SetPosition(1, allJoints[sdIndex].partTwo.Position);
 			lr.material.color = Color.black;
 			lr.SetWidth(0.25f, 0.25f);
 			allLines.Add(lr);
@@ -217,17 +217,17 @@ public class SpringBehavior : MonoBehaviour
 				surf = new Triangle(allPoints[triIndex], allPoints[triIndex + 1], allPoints[triIndex + width]);
 				foreach(SpringDamper sd in allJoints)
 				{
-					if ((sd.P1 == surf.P1 && sd.P2 == surf.P2) || (sd.P1 == surf.P2 && sd.P2 == surf.P1))
+					if ((sd.partOne == surf.FirstPoint && sd.partTwo == surf.SecondPoint) || (sd.partOne == surf.SecondPoint && sd.partTwo == surf.FirstPoint))
 					{
-						surf.SD1 = sd;
+						surf.FirstLine = sd;
 					}
-					if ((sd.P1 == surf.P2 && sd.P2 == surf.P3) || (sd.P1 == surf.P3 && sd.P2 == surf.P2))
+					if ((sd.partOne == surf.SecondPoint && sd.partTwo == surf.ThirdPoint) || (sd.partOne == surf.ThirdPoint && sd.partTwo == surf.SecondPoint))
 					{
-						surf.SD2 = sd;
+						surf.SecondLine = sd;
 					}
-					if((sd.P1 == surf.P3 && sd.P2 == surf.P1) || (sd.P1 == surf.P1 && sd.P2 == surf.P3))
+					if((sd.partOne == surf.ThirdPoint && sd.partTwo == surf.FirstPoint) || (sd.partOne == surf.FirstPoint && sd.partTwo == surf.ThirdPoint))
 					{
-						surf.SD3 = sd;
+						surf.ThirdLine = sd;
 					}
 				}
 				allSurfaces.Add(surf);
@@ -239,27 +239,26 @@ public class SpringBehavior : MonoBehaviour
 				allSurfaces.Add(surf);
 			}
 		}
-
-		//foreach(ApplyParticle i in allPoints)
-		//{
-		//	int triIndex = FindIndex(allPoints, i);
-		//	Triangle t;
-
-		//	if(triIndex >= width && triIndex + 1 < allPoints.Count && triIndex % width != width - 1)
-		//	{
-		//		t = new Triangle(allPoints[triIndex], allPoints[triIndex + 1], allPoints[triIndex - width + 1]);
-		//		allSurfaces.Add(t);
-		//	}
-		//}
 	}
 
 	public void clothTearing(SpringDamper torn)
 	{
-		if (torn.threadTearing(tearPoint) == true || torn.P1 == null || torn.P2 == null)
+		if ((torn.partTwo.Position - torn.partOne.Position).magnitude > (Rest * tearPoint) / (0.03f * fSpring))
 		{
-			Destroy(allLines[allJoints.IndexOf(torn)].gameObject);
-			allLines.Remove(allLines[allJoints.IndexOf(torn)]);
-			allJoints.Remove(torn);
+			if ((torn.partTwo.allInstances.Contains(torn.partOne)))
+			{
+				torn.partTwo.allInstances.Remove(torn.partOne);
+				Destroy(allLines[allJoints.IndexOf(torn)].gameObject);
+				allLines.Remove(allLines[allJoints.IndexOf(torn)]);
+				allJoints.Remove(torn);
+			}
+			if (torn.partOne.allInstances.Contains(torn.partTwo))
+			{
+				torn.partOne.allInstances.Remove(torn.partTwo);
+				Destroy(allLines[allJoints.IndexOf(torn)].gameObject);
+				allLines.Remove(allLines[allJoints.IndexOf(torn)]);
+				allJoints.Remove(torn);
+			}
 		}
 	}
 

@@ -3,21 +3,16 @@ using System.Collections;
 
 public class MouseInteraction : MonoBehaviour
 {
-	public GameObject selected;
-	
-	// Use this for initialization
-	void Start () {
-	
-	}
+	private GameObject selected;
 	
 	// Update is called once per frame
-	void Update ()
+	private void Update ()
 	{
 		dragging();
 		anchoring();
 	}
 
-	void dragging()
+	private void dragging()
 	{
 		if (Input.GetButton("Fire1"))
 		{
@@ -44,7 +39,8 @@ public class MouseInteraction : MonoBehaviour
 			selected = null;
 		}
 	}
-	void anchoring()
+
+	private void anchoring()
 	{
 		if (Input.GetButtonDown("Fire2"))
 		{
@@ -64,7 +60,7 @@ public class MouseInteraction : MonoBehaviour
 		}
 	}
 
-	public GameObject Project()
+	private GameObject Project()
 	{
 		Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
 		RaycastHit hit = new RaycastHit();

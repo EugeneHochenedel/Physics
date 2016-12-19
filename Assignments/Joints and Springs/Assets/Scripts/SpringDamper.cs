@@ -3,24 +3,55 @@ using System.Collections;
 
 public class SpringDamper
 {
-	public float SpringConstant, DampingFactor; //Ks, Kd
-	public float RestLength; //l0;
+	//Fields
+	private float fSpringConstant, fDampingFactor; //Ks, Kd
+	private float fRestLength; //l0;
 
-	public Particle P1, P2;
+	private Particle P1, P2;
 
-	public SpringDamper()
-	{
-	}
+	public SpringDamper() { }
 
 	public SpringDamper(float Ks, float Kd, float L0, Particle first, Particle second)
 	{
-		SpringConstant = Ks;
-		DampingFactor = Kd;
-		RestLength = L0;
+		fSpringConstant = Ks;
+		fDampingFactor = Kd;
+		fRestLength = L0;
 		P1 = first;
 		P2 = second;
 	}
 
+	//Properties
+	public float SpringConstant
+	{
+		get { return fSpringConstant; }
+		set { fSpringConstant = value; }
+	}
+
+	public float DampingFactor
+	{
+		get { return fDampingFactor; }
+		set { fDampingFactor = value; }
+	}
+
+	public float RestLength
+	{
+		get { return fRestLength; }
+		set { fRestLength = value; }
+	}
+
+	public Particle partOne
+	{
+		get { return P1; }
+		set { P1 = value; }
+	}
+
+	public Particle partTwo
+	{
+		get { return P2; }
+		set { P2 = value; }
+	}
+
+	//Functions
 	public void ComputeForce()
 	{
 		Vector3 eStar = P2.Position - P1.Position;
@@ -30,8 +61,8 @@ public class SpringDamper
 		float vel1 = Vector3.Dot(e, P1.Velocity);
 		float vel2 = Vector3.Dot(e, P2.Velocity);
 
-		float SpringForceLinear = -SpringConstant * (RestLength - l);
-		float DamperForce = -DampingFactor * (vel1 - vel2);
+		float SpringForceLinear = -fSpringConstant * (fRestLength - l);
+		float DamperForce = -fDampingFactor * (vel1 - vel2);
 
 		Vector3 SpringForce1 = (SpringForceLinear + DamperForce) * e;
 		Vector3 SpringForce2 = -SpringForce1;
@@ -40,25 +71,6 @@ public class SpringDamper
 		P2.addForce(SpringForce2);
 	}
 
-	//public void Draw()
-	//{
-	//	Debug.DrawLine(P1.Position, P2.Position, Color.black);
-	//}
-
-	public bool threadTearing(float tF)
-	{
-		if ((P2.Position - P1.Position).magnitude > (RestLength * tF) / (0.03f * SpringConstant))
-		{
-			if (P2.allInstances.Contains(P1))
-			{
-				P2.allInstances.Remove(P1);
-			}
-			if (P1.allInstances.Contains(P2))
-			{
-				P1.allInstances.Remove(P2);
-			}
-			return true;
-		}
-		return false;
-	}
+	//Comment from the instructor
+	//remember to let classes represent an "is a" relationship
 }
