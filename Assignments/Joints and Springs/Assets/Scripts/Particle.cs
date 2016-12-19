@@ -2,9 +2,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using ParticleProperties;
 
-public class Particle : IParticles
+public class Particle
 {
 	Vector3 vecPosition; //position += velocity * Time.deltaTime
 	Vector3 vecVelocity; //velocity += a * Time.deltaTime
@@ -81,7 +80,6 @@ public class Particle : IParticles
 			vecPosition += vecVelocity * Time.fixedDeltaTime;
 		}
 		
-		return vecPosition;
-		
+		return vecPosition;	
 	}
 }
