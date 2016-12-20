@@ -312,7 +312,8 @@ public class SpringBehavior : MonoBehaviour
 			cameraPosition += i.particle.Position;
 		}
 		cameraPosition = cameraPosition / allPoints.Count;
-		cameraPosition.z = -(width * height) * 2;
+		cameraPosition.z = -40.48f;
+		//cameraPosition.z = -(width * height) * 2;
 		Camera.main.transform.position = cameraPosition;
 	}
 	
